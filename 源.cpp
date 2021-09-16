@@ -13,7 +13,7 @@ int ifelse_counter = 0;
 int if_elseif_else_counter = 0;
 
 int MyCut(char j) {
-	if (j=='\t'||j == ' ' || j == '(' || j == ')' || j == ':'
+	if (j == '\t' || j == ' ' || j == '(' || j == ')' || j == ':'
 		|| j == '\n' || j == ';' || j == '#' || j == '=' || j == '!' || j == '?'
 		|| j == '-' || j == '<' || j == '>' || (j <= 57 && j >= 48)) return 0;
 	else if (j == '{' || j == '}') return 2;
@@ -33,13 +33,38 @@ int SwitchIfCounter(int begin) {
 	for (i = begin; i < stack.size(); i++) {
 		if (stack[i].second == "switch") {
 			int j;
-			for (j = i+1; j < stack.size()&& stack[j].first > stack[i].first; j++) {
+			for (j = i + 1; j < stack.size() && stack[j].first > stack[i].first; j++) {
 				if (stack[j].second == "case") caseCount++;
 				else if (stack[j].second == "switch") {
 					j = SwitchIfCounter(j);
 				}
 			}
 			case_counter.push_back(caseCount);
+			return j;
+		}
+		else if (stack[i].second == "if") {
+			int j;
+			int flag = 0;//0表示if结构,1表示else结构,2表示if，else if结构,3表示if，else if，else结构
+			for (j = i + 1; j < stack.size() && stack[j].first >= stack[i].first; j++) {
+				if (stack[j].second == "else" && stack[j + 1].second == "if") {
+					if (flag == 0) {
+						flag = 2;
+					}
+					j++;
+				}
+				else if (stack[j].second == "else") {
+					if (flag == 0) {
+						ifelse_counter++;
+					}
+					else if (flag == 2) {
+						if_elseif_else_counter++;
+					}
+					break;
+				}
+				else if (stack[j].second == "if") {
+					j = SwitchIfCounter(j);
+				}
+			}
 			return j;
 		}
 	}
@@ -52,7 +77,7 @@ void MyRead() {
 	string KeyGuan;//用来存储所有切分后的单词
 	string test = "break";
 	int CaseCount = 0;
-	ifstream infile("C:\\Users\\11765\\Source\\Repos\\C++词法分析\\Debug\\test3.cpp");
+	ifstream infile("C:\\Users\\11765\\Source\\Repos\\C++词法分析\\Debug\\test2.cpp");
 	cout << "Reading..." << endl;
 	if (!infile.is_open()) {
 		cout << "false" << endl;
@@ -110,7 +135,7 @@ int main() {
 		i = SwitchIfCounter(i);
 		if (i == stack.size()) break;
 	}
-	
+
 	cout << "total num: " << KeyCount << endl;
 	cout << "switch num: " << MapKeyGuan["switch"] << endl;
 	cout << "case num:";
@@ -118,5 +143,7 @@ int main() {
 		cout << " " << case_counter[i];
 	}
 	cout << endl;
+	cout << "if-else num: " << ifelse_counter <<endl;
+	cout << "if-elseif-else num:" << if_elseif_else_counter << endl;
 	return 0;
 }
