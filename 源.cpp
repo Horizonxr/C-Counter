@@ -4,13 +4,16 @@
 #include <map>
 #include <vector>
 using namespace std;
-map<string, int> MapKeyGuan;
-vector<string> Zu;
+map<string, int> MapKeyGuan;//用来存储32种关键词类型
+vector<string> Zu;//用来存储所有关键词
 vector<int> case_counter;
+vector<pair<int, string>> stack;
+int KeyCount = 0;
 int ifelse_counter = 0;
 int if_elseif_else_counter = 0;
+
 int MyCut(char j) {
-	if (j == ' ' || j == '(' || j == ')' || j == ':'
+	if (j=='\t'||j == ' ' || j == '(' || j == ')' || j == ':'
 		|| j == '\n' || j == ';' || j == '#' || j == '=' || j == '!' || j == '?'
 		|| j == '-' || j == '<' || j == '>' || (j <= 57 && j >= 48)) return 0;
 	else if (j == '{' || j == '}') return 2;
@@ -23,33 +26,30 @@ void InitMap() {
 	for (int i = 0; i < 32; i++)
 		MapKeyGuan.insert(pair<string, int>(KeyGuan[i], 0));
 }
-void SwitchIfCounter() {
-	int flag = 0;
+int SwitchIfCounter(int begin) {
+	//扫描switch情况
 	int caseCount = 0;
-	int ifFlag = 0;//Flag=0表示只有if，1表示if-else,2表示if-elseif-else
-	for (int i = 0; i < Zu.size(); i++) {
-		if (Zu[i] == "switch") {
-			for (int j = i; j <= Zu.size(); j++) {
-				if (Zu[j] == "case") {
-					caseCount++;
-				}
-				else if (Zu[j] == "}") {
-					case_counter.push_back(caseCount);
-					caseCount = 0;
-					i = j;
-					break;
+	int i = 0;
+	for (i = begin; i < stack.size(); i++) {
+		if (stack[i].second == "switch") {
+			int j;
+			for (j = i+1; j < stack.size()&& stack[j].first > stack[i].first; j++) {
+				if (stack[j].second == "case") caseCount++;
+				else if (stack[j].second == "switch") {
+					j = SwitchIfCounter(j);
 				}
 			}
+			case_counter.push_back(caseCount);
+			return j;
 		}
-		//这里有点问题要改一下逻辑，存在嵌套的问题，switch或者if互相嵌套，考虑使用堆栈来解决
 	}
+	return i;
 }
-int main() {
-	InitMap();
-	string data;
-	string save;
-	string KeyGuan;
-	int count = 0;
+void MyRead() {
+	//读入文件中的数据
+	string data;//用来保存读入的单个字符
+	string save;//用来保存读入的字符串
+	string KeyGuan;//用来存储所有切分后的单词
 	string test = "break";
 	int CaseCount = 0;
 	ifstream infile("C:\\Users\\11765\\Source\\Repos\\C++词法分析\\Debug\\test3.cpp");
@@ -77,15 +77,41 @@ int main() {
 				if (MapKeyGuan.find(KeyGuan) != MapKeyGuan.end()) {
 					MapKeyGuan[KeyGuan] += 1;
 					Zu.push_back(KeyGuan);
-					count++;
+					KeyCount++;
 				}
 			}
 			KeyGuan.clear();
 		}
 	}
+	//打上嵌套等级
+	int level = 0;//用来分析嵌套等级
+	pair<int, string> temp;
+	int caseCount = 0;
+	//通过对组打上等级标识
+	for (int i = 0; i < Zu.size(); i++) {
+		if (Zu[i] == "{") {
+			level++;
+
+		}
+		else if (Zu[i] == "}") {
+			level--;
+		}
+		temp.first = level;
+		temp.second = Zu[i];
+		stack.push_back(temp);
+	}
+}
+int main() {
+	InitMap();
+	MyRead();
+	int i = 0;
 	//开始统计switch case个数和if结构总数
-	SwitchIfCounter();
-	cout << "total num: " << count << endl;
+	while (1) {
+		i = SwitchIfCounter(i);
+		if (i == stack.size()) break;
+	}
+	
+	cout << "total num: " << KeyCount << endl;
 	cout << "switch num: " << MapKeyGuan["switch"] << endl;
 	cout << "case num:";
 	for (int i = 0; i < case_counter.size(); i++) {
