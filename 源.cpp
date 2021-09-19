@@ -49,7 +49,18 @@ int MyRead(string address) {
 	infile.close();
 	//进行预处理，将所有可能的关键词进行切分
 	for (int i = 0; i < save.length(); i++) {
-		if (MyCut(save[i]) == 1) {
+		if (i + 1 <= save.length() && save[i] == '/' && save[i + 1] == '/') {
+			//判断注释的情况
+			int j;
+			for (j = i + 2; j < save.length() && save[j] != '\n'; j++);
+			i = j;
+		}
+		else if (save[i] == '\"') {
+			int j;
+			for (j = i + 1; j < save.length() && save[j] != '\"'; j++);
+			i = j;
+		}
+		else if (MyCut(save[i]) == 1) {
 			key_guan.push_back(save[i]);
 		}
 		else if (MyCut(save[i]) == 2) {
@@ -177,10 +188,9 @@ void MyShow(int out_level) {
 
 int main() {
 	InitMap();
-	//string address = "C:\\Users\\11765\\Source\\Repos\\C++词法分析\\test3.cpp";//传入文件地址
 	string address;//传入文件地址
 	int out_level = 4;//展示信息的完成等级
-	cout << "Please Enter file address and output level: " << endl;
+	cout << "Please enter file address and output level: " << endl;
 	cin >> address;
 	cin >> out_level;
 	if (MyRead(address)) {
