@@ -26,7 +26,7 @@ void InitMap() {
 	for (int i = 0; i < 32; i++)
 		MapKeyGuan.insert(pair<string, int>(KeyGuan[i], 0));
 }
-int SwitchIfCounter(int begin) {
+int SwitchCounter(int begin) {
 	//扫描switch情况
 	int caseCount = 0;
 	int i = 0;
@@ -36,13 +36,20 @@ int SwitchIfCounter(int begin) {
 			for (j = i + 1; j < stack.size() && stack[j].first > stack[i].first; j++) {
 				if (stack[j].second == "case") caseCount++;
 				else if (stack[j].second == "switch") {
-					j = SwitchIfCounter(j);
+					j = SwitchCounter(j);
 				}
 			}
 			case_counter.push_back(caseCount);
 			return j;
 		}
-		else if (stack[i].second == "if") {
+	}
+	return i;
+}
+int IfCounter(int begin) {
+	//扫描switch情况
+	int i = 0;
+	for (i = begin; i < stack.size(); i++) {
+		if (stack[i].second == "if") {
 			int j;
 			int flag = 0;//0表示if结构,1表示else结构,2表示if，else if结构,3表示if，else if，else结构
 			for (j = i + 1; j < stack.size() && stack[j].first >= stack[i].first; j++) {
@@ -62,7 +69,7 @@ int SwitchIfCounter(int begin) {
 					break;
 				}
 				else if (stack[j].second == "if") {
-					j = SwitchIfCounter(j);
+					j = IfCounter(j);
 				}
 			}
 			return j;
@@ -77,7 +84,7 @@ void MyRead() {
 	string KeyGuan;//用来存储所有切分后的单词
 	string test = "break";
 	int CaseCount = 0;
-	ifstream infile("C:\\Users\\11765\\Source\\Repos\\C++词法分析\\Debug\\test2.cpp");
+	ifstream infile("C:\\Users\\11765\\Source\\Repos\\C++词法分析\\Debug\\test3.cpp");
 	cout << "Reading..." << endl;
 	if (!infile.is_open()) {
 		cout << "false" << endl;
@@ -98,7 +105,6 @@ void MyRead() {
 		}
 		else {
 			if (KeyGuan.length() > 1) {
-				cout << KeyGuan << endl;
 				if (MapKeyGuan.find(KeyGuan) != MapKeyGuan.end()) {
 					MapKeyGuan[KeyGuan] += 1;
 					Zu.push_back(KeyGuan);
@@ -111,7 +117,6 @@ void MyRead() {
 	//打上嵌套等级
 	int level = 0;//用来分析嵌套等级
 	pair<int, string> temp;
-	int caseCount = 0;
 	//通过对组打上等级标识
 	for (int i = 0; i < Zu.size(); i++) {
 		if (Zu[i] == "{") {
@@ -126,16 +131,20 @@ void MyRead() {
 		stack.push_back(temp);
 	}
 }
-int main() {
-	InitMap();
-	MyRead();
+void Count() {
 	int i = 0;
 	//开始统计switch case个数和if结构总数
 	while (1) {
-		i = SwitchIfCounter(i);
+		i = SwitchCounter(i);
 		if (i == stack.size()) break;
 	}
-
+	i = 0;
+	while (1) {
+		i = IfCounter(i);
+		if (i == stack.size()) break;
+	}
+}
+void MyShow() {
 	cout << "total num: " << KeyCount << endl;
 	cout << "switch num: " << MapKeyGuan["switch"] << endl;
 	cout << "case num:";
@@ -143,7 +152,13 @@ int main() {
 		cout << " " << case_counter[i];
 	}
 	cout << endl;
-	cout << "if-else num: " << ifelse_counter <<endl;
+	cout << "if-else num: " << ifelse_counter << endl;
 	cout << "if-elseif-else num:" << if_elseif_else_counter << endl;
+}
+int main() {
+	InitMap();
+	MyRead();
+	Count();
+	MyShow();
 	return 0;
 }
