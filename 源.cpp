@@ -31,6 +31,7 @@ int MyCut(char j) {
 //读入文件数据并进行切割处理
 int MyRead(string address) {
 	//读入文件中的数据
+	int cut_num;//存储切分对应标识
 	string c;//用来保存读入的单个字符
 	string save;//用来保存读入的字符串
 	string key_guan;//用来存储所有切分后的单词
@@ -49,6 +50,7 @@ int MyRead(string address) {
 	infile.close();
 	//进行预处理，将所有可能的关键词进行切分
 	for (int i = 0; i < save.length(); i++) {
+		cut_num = MyCut(save[i]);
 		if (i + 1 <= save.length() && save[i] == '/' && save[i + 1] == '/') {
 			//判断注释的情况
 			int j;
@@ -60,10 +62,10 @@ int MyRead(string address) {
 			for (j = i + 1; j < save.length() && save[j] != '\"'; j++);
 			i = j;
 		}
-		else if (MyCut(save[i]) == 1) {
+		else if (cut_num == 1) {
 			key_guan.push_back(save[i]);
 		}
-		else if (MyCut(save[i]) == 2) {
+		else if (cut_num == 2) {
 			string s(1, save[i]);
 			unfiltered_key.push_back(s);
 		}
