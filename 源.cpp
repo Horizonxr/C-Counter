@@ -31,7 +31,7 @@ int MyCut(char j) {
 //读入文件数据并进行切割处理
 int MyRead(string address) {
 	//读入文件中的数据
-	int cut_num;//存储切分对应标识
+	int cut_num = 0;//存储切分对应标识
 	string c;//用来保存读入的单个字符
 	string save;//用来保存读入的字符串
 	string key_guan;//用来存储所有切分后的单词
