@@ -144,6 +144,10 @@ int IfCounter(int begin) {
 				else if (level_key[j].second == "if") {
 					j = IfCounter(j);
 				}
+				else if ((level_key[i].first >= level_key[j].first) && level_key[j].second == "}" && (level_key[j + 1].second != "else" && level_key[j + 1].second != "if")) {
+					i = j+1;
+					return j;
+				}
 			}
 			return j;
 		}
